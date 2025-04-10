@@ -1,0 +1,186 @@
+@page "/slot-game"
+@using System.Timers
+
+<div class="slot-machine">
+    <div class="reels">
+        @foreach (var reel in reels)
+        {
+            <div class="reel">
+                <div class="symbol @(IsSpinning ? "spinning" : "")">@reel.CurrentSymbol</div>
+            </div>
+        }
+    </div>
+    
+    <div class="controls">
+        <button @onclick="Spin" disabled="@(IsSpinning || Credits < 1)">SPIN (1 DKK)</button>
+        <div class="credits">DKK: @Credits</div>
+        <div class="result">@ResultMessage</div>
+    </div>
+</div>
+
+@code {
+    private readonly string[] symbols = { "🍒", "🔔", "🍊", "7️⃣", "💎", "💰" };
+    private readonly int[] payouts = { 2, 5, 3, 10, 20, 50 };
+    private List<Reel> reels = new();
+    private bool IsSpinning;
+    private int Credits = 100;
+    private string ResultMessage = "";
+
+    protected override void OnInitialized()
+    {
+        InitializeReels();
+        base.OnInitialized();
+    }
+
+    private void InitializeReels()
+    {
+        reels = new List<Reel>
+        {
+            new Reel(symbols),
+            new Reel(symbols),
+            new Reel(symbols)
+        };
+    }
+
+    private async Task Spin()
+    {
+        if (Credits < 1 || IsSpinning) return;
+        
+        Credits--;
+        IsSpinning = true;
+        ResultMessage = "";
+        
+        var tasks = new List<Task>();
+        foreach (var reel in reels)
+        {
+            tasks.Add(reel.Spin(UpdateUI));
+        }
+
+        await Task.WhenAll(tasks);
+        
+        CheckWin();
+        IsSpinning = false;
+    }
+
+    private void CheckWin()
+    {
+        var uniqueSymbols = reels.Select(r => r.CurrentSymbol).Distinct().Count();
+        if (uniqueSymbols == 1)
+        {
+            var symbolIndex = Array.IndexOf(symbols, reels[0].CurrentSymbol);
+            var payout = payouts[symbolIndex];
+            Credits += payout;
+            ResultMessage = $"JACKPOT! WON {payout} CREDITS!";
+        }
+        else
+        {
+            ResultMessage = "TRY AGAIN!";
+        }
+    }
+
+    private async Task UpdateUI()
+    {
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(50);
+    }
+
+    private class Reel
+    {
+        private readonly string[] symbols;
+        public string CurrentSymbol { get; private set; }
+
+        public Reel(string[] symbols)
+        {
+            this.symbols = symbols;
+            CurrentSymbol = symbols[0];
+        }
+
+        public async Task Spin(Func<Task> updateUi)
+        {
+            var random = new Random();
+            var spins = random.Next(10, 20);
+            
+            for (var i = 0; i < spins; i++)
+            {
+                CurrentSymbol = symbols[random.Next(symbols.Length)];
+                await updateUi();
+                await Task.Delay(100 + (i * 10));
+            }
+        }
+    }
+}
+
+
+<style>
+
+/* Add to wwwroot/css/site.css or in a style section */
+.slot-machine {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 20px;
+    border: 3px solid #333;
+    border-radius: 10px;
+    background: #1a1a1a;
+    text-align: center;
+}
+
+.reels {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.reel {
+    width: 100px;
+    height: 100px;
+    border: 2px solid #gold;
+    border-radius: 5px;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+}
+
+.symbol.spinning {
+    animation: spin 0.5s infinite;
+}
+
+@@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.controls {
+    margin-top: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 18px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+.credits {
+    font-size: 24px;
+    margin: 10px 0;
+    color: #gold;
+}
+
+.result {
+    font-size: 24px;
+    color: #ffd700;
+    min-height: 30px;
+}
+
+</style>
