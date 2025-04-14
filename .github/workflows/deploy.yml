@@ -1,0 +1,40 @@
+name: Build and Deploy via MSDeploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+
+    steps:
+      - name: 🧾 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🧰 Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: 🔨 Restore
+        run: dotnet restore
+
+      - name: 🛠️ Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: 📦 Publish
+        run: dotnet publish -c Release -o published
+
+      - name: 🚀 Deploy via MSDeploy
+        run: >
+          "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          -verb:sync
+          -source:contentPath="published"
+          -dest:contentPath=${{ secrets.MSDEPLOY_SITE_NAME }},
+                computerName="https://${{ secrets.MSDEPLOY_SERVER }}/msdeploy.axd?site=${{ secrets.MSDEPLOY_SITE_NAME }}",
+                userName='${{ secrets.MSDEPLOY_USERNAME }}',
+                password='${{ secrets.MSDEPLOY_PASSWORD }}',
+                authType='Basic'
+          -allowUntrusted
