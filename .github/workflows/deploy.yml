@@ -35,12 +35,20 @@ jobs:
       # Step 6: Deploy using MSDeploy
       - name: 🚀 Deploy via MSDeploy
         run: |
+          # Debugging: Output the values of the secrets
+          Write-Host "MSDEPLOY_SERVER: ${{ secrets.MSDEPLOY_SERVER }}"
+          Write-Host "MSDEPLOY_SITE_NAME: ${{ secrets.MSDEPLOY_SITE_NAME }}"
+          Write-Host "MSDEPLOY_USERNAME: ${{ secrets.MSDEPLOY_USERNAME }}"
+          Write-Host "MSDEPLOY_PASSWORD: ${{ secrets.MSDEPLOY_PASSWORD }}"
+          
           # Construct msdeploy command
           $msdeployCommand = '"C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" -verb:sync -source:contentPath="published" -dest:contentPath="${{ secrets.MSDEPLOY_SITE_NAME }}", computerName="https://${{ secrets.MSDEPLOY_SERVER }}/msdeploy.axd?site=${{ secrets.MSDEPLOY_SITE_NAME }}", userName="${{ secrets.MSDEPLOY_USERNAME }}", password="${{ secrets.MSDEPLOY_PASSWORD }}", authType="Basic" -allowUntrusted'
           
-          # Run the msdeploy command using Invoke-Expression
+          # Output the final msdeploy command to check
           Write-Host "Running msdeploy with the following command:"
           Write-Host $msdeployCommand
+          
+          # Execute msdeploy command
           Invoke-Expression $msdeployCommand
         shell: pwsh
         env:
