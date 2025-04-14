@@ -1,0 +1,114 @@
+@page "/GoalDiggers"
+@inject IJSRuntime JS
+@using MudBlazor
+
+<MudPaper Class="p-6 text-center" Elevation="6">
+    <MudText Typo="Typo.h4">⚽ Goal Diggers</MudText>
+    <MudText Class="mt-2">Score: @Score | Bet: @Bet | Multiplier: @Multiplier x</MudText>
+
+    <div class="relative mt-6 mx-auto" style="width: 600px; height: 350px;">
+        <img src="images/goal.png"
+             alt="Soccer Goal"
+             class="absolute object-contain w-full h-full rounded z-0"/>
+
+        @for (int i = 0; i < 9; i++)
+        {
+            var (top, left) = GetPixelPosition(i);
+            <button @onclick="() => TakeShot(i)"
+                    disabled="@(!IsPlaying)"
+                    class="absolute bg-transparent border-none"
+                    style="top:@top; left:@left; width:60px; height:60px; z-index:5;">
+                <img src="https://cdn-icons-png.flaticon.com/512/1024/1024278.png"
+                     alt="Target"
+                     style="width:60px; height:60px;"/>
+            </button>
+        }
+
+        @if (GoalkeeperPosition >= 0)
+        {
+            var (top, left) = GetPixelPosition(GoalkeeperPosition);
+            <img src="images/goalkeeper.png"
+                 alt="Goalkeeper"
+                 class="absolute transition-all duration-500 ease-in-out"
+                 style="top:@top; left:@left; width:60px; height:60px; z-index:10;"/>
+        }
+    </div>
+
+    @if (!IsPlaying)
+    {
+        <MudButton OnClick="StartGame" Color="Color.Success" Class="mt-4">Start Game</MudButton>
+    }
+    else
+    {
+        <MudButton OnClick="Cashout" Color="Color.Warning" Class="mt-4">💰 Cashout</MudButton>
+    }
+</MudPaper>
+
+@code {
+    private int Score = 0;
+    private double Bet = 10;
+    private double Multiplier = 1;
+    private bool IsPlaying = false;
+    private int GoalkeeperPosition = 4; // start center
+    private Random rng = new();
+
+    private async Task TakeShot(int pos)
+    {
+        GoalkeeperPosition = rng.Next(0, 9);
+        StateHasChanged();
+        await Task.Delay(500);
+
+        if (pos == GoalkeeperPosition)
+        {
+            ResetGame();
+        }
+        else
+        {
+            Score++;
+            Multiplier += 0.5;
+            // await Task.Delay(100);
+            if (IsPlaying)
+                // await 
+                JS.InvokeVoidAsync("showConfetti");
+        }
+    }
+
+    private void StartGame()
+    {
+        Score = 0;
+        Multiplier = 1;
+        IsPlaying = true;
+        GoalkeeperPosition = 4;
+    }
+
+    private void Cashout()
+    {
+        var reward = Bet * Multiplier;
+        ResetGame();
+    }
+
+    private void ResetGame()
+    {
+        IsPlaying = false;
+        GoalkeeperPosition = -1;
+    }
+
+    private (string top, string left) GetPixelPosition(int index)
+    {
+        // Positions for 600x350 goal image
+        return index switch
+        {
+            0 => ("10px", "30px"), // Top Left
+            1 => ("10px", "270px"), // Top Center
+            2 => ("10px", "510px"), // Top Right
+            3 => ("120px", "30px"), // Middle Left
+            4 => ("120px", "270px"), // Center
+            5 => ("120px", "510px"), // Middle Right
+            6 => ("250px", "30px"), // Bottom Left
+            7 => ("250px", "270px"), // Bottom Middle
+            8 => ("250px", "510px"), // Bottom Right
+            _ => ("0px", "0px")
+        };
+    }
+
+}

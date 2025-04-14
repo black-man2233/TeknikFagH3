@@ -14,11 +14,11 @@ jobs:
       - name: 🧾 Checkout Code
         uses: actions/checkout@v4
       
-      # Step 2: Setup .NET 9
+      # Step 2: Setup .NET 9 explicitly
       - name: 🧰 Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '9.0.x'  # Ensure .NET 9 is installed
       
       # Step 3: Restore project dependencies
       - name: 🔨 Restore
