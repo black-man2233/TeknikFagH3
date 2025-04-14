@@ -1,0 +1,160 @@
+﻿@page "/bingo"
+@using MudBlazor
+@inject ISnackbar Snackbar
+
+<MudPaper Elevation="4" Class="p-6 mx-auto my-8 max-w-xl rounded-2xl shadow-lg fade-in">
+    <MudText Typo="Typo.h4" Align="Align.Center">🎱 Blazor Bingo Showdown 🎲</MudText>
+
+    @if (gameOver)
+    {
+        <MudAlert Severity="Severity.Success" Variant="Variant.Filled" Class="my-4">
+            <MudText Typo="Typo.h6">@winner.Name wins the prize pool of @game.PrizePool.ToString("C")!</MudText>
+        </MudAlert>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RestartGame">Play Again</MudButton>
+    }
+    else
+    {
+        <MudPaper Class="my-4 p-4 fade-in">
+            <MudText Typo="Typo.h6">💰 Prize Pool: @game.PrizePool.ToString("C")</MudText>
+            <MudText Typo="Typo.subtitle2">Numbers Drawn:</MudText>
+            <MudPaper Class="my-2 d-flex flex-wrap gap-1">
+                @foreach (var num in game.DrawnNumbers.OrderBy(x => x))
+                {
+                    <MudChip T="int" Color="Color.Info" Variant="Variant.Filled">@num</MudChip>
+                }
+            </MudPaper>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="DrawNextNumber">
+                🎯 Draw Next Number
+            </MudButton>
+        </MudPaper>
+    }
+
+    <MudDivider Class="my-4" />
+
+    <MudGrid>
+        <MudItem xs="6">
+            <MudCard Class="pa-3">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">👤 You</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    @foreach (var num in game.Player.CardNumbers)
+                    {
+                        <MudChip T="int" Color="@GetChipColor(num)" Class="ma-1">@num</MudChip>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="6">
+            <MudCard Class="pa-3">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">🤖 Bot</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    @foreach (var num in game.Bot.CardNumbers)
+                    {
+                        <MudChip T="int" Color="@GetChipColor(num)" Class="ma-1">@num</MudChip>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@code {
+    private BingoGame game;
+    private BingoPlayer winner;
+    private bool gameOver = false;
+
+    protected override void OnInitialized()
+    {
+        StartGame();
+    }
+
+    private void StartGame()
+    {
+        var rnd = new Random();
+        game = new BingoGame
+            {
+                Player = new BingoPlayer
+                {
+                    Name = "You",
+                    Bet = 50,
+                    CardNumbers = GenerateBingoCard()
+                },
+                Bot = new BingoPlayer
+                {
+                    Name = "Bot",
+                    Bet = 50,
+                    CardNumbers = GenerateBingoCard()
+                }
+            };
+    }
+
+    private List<int> GenerateBingoCard()
+    {
+        return Enumerable.Range(1, 75).OrderBy(_ => Guid.NewGuid()).Take(15).ToList();
+    }
+
+    private void DrawNextNumber()
+    {
+        game.DrawNumber();
+        Snackbar.Add($"Number drawn: {game.DrawnNumbers.Last()}", Severity.Info);
+
+        if (game.CheckForWinner(game.Player))
+        {
+            winner = game.Player;
+            gameOver = true;
+        }
+        else if (game.CheckForWinner(game.Bot))
+        {
+            winner = game.Bot;
+            gameOver = true;
+        }
+    }
+
+    private void RestartGame()
+    {
+        gameOver = false;
+        StartGame();
+    }
+
+    private Color GetChipColor(int number)
+    {
+        return game.DrawnNumbers.Contains(number) ? Color.Success : Color.Default;
+    }
+
+    // Game logic classes
+    public class BingoPlayer
+    {
+        public string Name { get; set; }
+        public List<int> CardNumbers { get; set; } = new();
+        public decimal Bet { get; set; }
+        public bool IsWinner { get; set; } = false;
+    }
+
+    public class BingoGame
+    {
+        public BingoPlayer Player { get; set; } = new();
+        public BingoPlayer Bot { get; set; } = new();
+        public HashSet<int> DrawnNumbers { get; set; } = new();
+        public decimal PrizePool => Player.Bet + Bot.Bet;
+
+        public void DrawNumber()
+        {
+            var rnd = new Random();
+            int num;
+            do
+            {
+                num = rnd.Next(1, 76); // 1-75
+            } while (DrawnNumbers.Contains(num));
+            DrawnNumbers.Add(num);
+        }
+
+        public bool CheckForWinner(BingoPlayer player)
+        {
+            return player.CardNumbers.All(n => DrawnNumbers.Contains(n));
+        }
+    }
+}

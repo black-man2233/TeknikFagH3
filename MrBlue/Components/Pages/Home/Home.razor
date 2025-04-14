@@ -1,0 +1,62 @@
+﻿@page "/Home"
+@using MudBlazor
+
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-5">
+    <!-- Promotions Carousel -->
+    <MudCarousel TData="string" Class="mb-5" Style="height:350px" Autoplay="true" AutoplayInterval="3000">
+        @foreach (var game in PromotionGames)
+        {
+            <MudCarouselItem>
+                <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                    <img src="@game.ImageUrl" alt="@game.Name" class="carousel-image" style="max-width: 100%; max-height: 100%;"/>
+                </div>
+            </MudCarouselItem>
+        }
+    </MudCarousel>
+
+
+    <!-- Featured Games Section -->
+    @* <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true" Class="mb-4">🎮 Featured Games</MudText> *@
+    @* <MudGrid> *@
+    @*     $1$ @foreach (var game in FeaturedGames) #1# *@
+    @*     $1$ { #1# *@
+    @*     $1$     <MudItem xs="12" sm="6" md="4" lg="3" Class="mb-4"> #1# *@
+    @*     $1$         <MudCard Class="game-card"> #1# *@
+    @*     $1$             <MudCardMedia Image="@game.ImageUrl" Style="height:200px"/> #1# *@
+    @*     $1$             <MudCardContent> #1# *@
+    @*     $1$                 <MudText Typo="Typo.h6" Align="Align.Center">@game.Name</MudText> #1# *@
+    @*     $1$             </MudCardContent> #1# *@
+    @*     $1$             <MudCardActions> #1# *@
+    @*     $1$                 <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">Play Now</MudButton> #1# *@
+    @*     $1$             </MudCardActions> #1# *@
+    @*     $1$         </MudCard> #1# *@
+    @*     $1$     </MudItem> #1# *@
+    @*     $1$ } #1# *@
+    @* </MudGrid> *@
+</MudContainer>
+
+
+@code {
+
+    private List<Game> PromotionGames = new()
+    {
+        new Game { Name = "Bar Bar", ImageUrl = "https://images.unsplash.com/photo-1518895312237-a9e23508077d?q=80&w=2084&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+    };
+
+    // private List<Game> FeaturedGames = new()
+    // {
+    //     new Game { Name = "Blackjack", ImageUrl = "images/blackjack.jpg" },
+    //     new Game { Name = "Roulette", ImageUrl = "images/roulette.jpg" },
+    //     new Game { Name = "Poker", ImageUrl = "images/poker.jpg" },
+    //     new Game { Name = "Slots", ImageUrl = "images/slots.jpg" }
+    // };
+
+    public class Game
+    {
+        public string Name { get; set; }
+        public string ImageUrl { get; set; }
+        public string GameUrl { get; set; }
+    }
+
+}

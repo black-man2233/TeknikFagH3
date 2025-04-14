@@ -1,25 +1,39 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
-<MudPopoverProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
+<MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode"/>
+<MudPopoverProvider/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
 <MudLayout>
     <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
-        <MudSpacer />
-        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())"/>
+
+        <MudText Typo="Typo.h5" Class="ml-3">🎰 Mr. Blue Casino</MudText>
+
+
+        <MudSpacer/>
+        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
+
+        <MudButton Variant="Variant.Text" Color="Color.Secondary" Class="mr-2">Sign In</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Class="mr-2">Join Now</MudButton>
+
     </MudAppBar>
+
     <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        <NavMenu />
+        <NavMenu/>
     </MudDrawer>
+
     <MudMainContent Class="pt-16 pa-4">
         @Body
     </MudMainContent>
-</MudLayout>
 
+    <!-- Footer Section -->
+    <MudAppBar Elevation="1" Style="top: auto; bottom: 0" Dense="true" Fixed="true">
+        <MudGrid Justify="Justify.Center">
+            <MudText Style="font-size:small">@copyRightNotice</MudText>
+        </MudGrid>
+    </MudAppBar>
+</MudLayout>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
@@ -31,6 +45,8 @@
     private bool _drawerOpen = true;
     private bool _isDarkMode = true;
     private MudTheme? _theme = null;
+
+    public string copyRightNotice { get; set; } = $" \u00a9{DateTime.Now.Year} Mr.Bue";
 
     protected override void OnInitialized()
     {
@@ -98,6 +114,5 @@
         true => Icons.Material.Rounded.AutoMode,
         false => Icons.Material.Outlined.DarkMode,
     };
+
 }
-
-
